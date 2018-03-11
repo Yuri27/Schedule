@@ -70,15 +70,11 @@ function selectGroup(chatId, num) {
                     {
                         text: 'ФІ-' + num,
                         callback_data: 'ФІ-' + num
-                    }
-                ],
-                [
+                    },
                     {
                         text: 'МІ-' + num,
                         callback_data: 'МІ-' + num
-                    }
-                ],
-                [
+                    },
                     {
                         text: 'І-' + num,
                         callback_data: 'І-' + num
@@ -100,7 +96,7 @@ bot.on('callback_query', query => {
         //console.log("group ", group);
         getDay(query.message.chat.id);
     }
-    if (query.message.text === 'Виберіть день тижня') {
+    if (query.message.text === 'Оберіть день тижня') {
         day = query.data;
         bot.answerCallbackQuery({
             callback_query_id: query.id,
@@ -109,7 +105,7 @@ bot.on('callback_query', query => {
         getTime(query.message.chat.id);
         //console.log("callback_query ", query.message.text + " " + group + " " + day)
     }
-    if (query.message.text === 'Виберіть пару') {
+    if (query.message.text === 'Оберіть пару') {
         time = query.data;
         bot.answerCallbackQuery({
             callback_query_id: query.id,
@@ -122,36 +118,28 @@ bot.on('callback_query', query => {
 });
 
 function getDay(chatId) {
-    bot.sendMessage(chatId, `Виберіть день тижня`, {
+    bot.sendMessage(chatId, `Оберіть день тижня`, {
         reply_markup: {
             inline_keyboard: [
                 [
                     {
-                        text: 'Понеділок',
+                        text: 'Пн',
                         callback_data: 'Понеділок'
-                    }
-                ],
-                [
+                    },
                     {
-                        text: 'Вівторок',
+                        text: 'Вт',
                         callback_data: 'Вівторок'
-                    }
-                ],
-                [
+                    },
                     {
-                        text: 'Середа',
+                        text: 'Ср',
                         callback_data: 'Середа'
-                    }
-                ],
-                [
+                    },
                     {
-                        text: 'Четвер',
+                        text: 'Чт',
                         callback_data: 'Четвер'
-                    }
-                ],
-                [
+                    },
                     {
-                        text: 'П\'ятниця',
+                        text: 'Пт',
                         callback_data: 'П\'ятниця'
                     }
                 ]
@@ -161,16 +149,14 @@ function getDay(chatId) {
 };
 
 function getTime(chatId) {
-    bot.sendMessage(chatId, `Виберіть пару`, {
+    bot.sendMessage(chatId, `Оберіть пару`, {
         reply_markup: {
             inline_keyboard: [
                 [
                     {
                         text: 'Перша',
                         callback_data: '9.00 - 10.20'
-                    }
-                ],
-                [
+                    },
                     {
                         text: 'Друга',
                         callback_data: '10.40 - 12.00'
@@ -180,9 +166,7 @@ function getTime(chatId) {
                     {
                         text: 'Третя',
                         callback_data: '12.10 - 13.30'
-                    }
-                ],
-                [
+                    },
                     {
                         text: 'Четверта',
                         callback_data: '13.50 - 15.10'
