@@ -1,24 +1,13 @@
-﻿/*Список команд задаётся в настройках ботового аккаунта у @BotFather.
-Для этого отправьте ему команду /setcommands,
-затем выберите вашего бота и введите новый список в таком формате
-(без слэшей в начале).*/
-
-/*Номера листів - факультети*/
-/*  0 - ФМФ
-    1 - БХ
-    2 - ГОЕ
-    3 - ДТО
-    4 - УМЛ
-    5 - ХУДГРАФ
-*/
-const TelegramBot = require('node-telegram-bot-api');
+﻿const TelegramBot = require('node-telegram-bot-api');
 const schedule = require('./schedule_google_table');
 
 const faculty = 0;
-var group = 'ФІ-17';
-var day = 'Понеділок';
+var group = '';
+var day = '';
 var time = '';
-var subject = '', subject2 = '', subject3 = '', subject4 = '', weekCh = '', weekZn = '', groupOne = '', groupTwo = '', times;
+var subject = '', subject2 = '', subject3 = '', subject4 = '',
+    pairsFirstZn = 0, pairsFirstCh = 0, pairsTwoZn = 0, pairsTwoCh = 0,
+    weekCh = '', weekZn = '', groupOne = '', groupTwo = '', times;
 
 const TOKEN = '404700036:AAGfvVRqH2TDZ3DDKgd-w8kmNqy_iW-5ZiM';//KDPU
 
@@ -184,21 +173,12 @@ function getTime(chatId) {
 };
 
 function getSchedule(chatId, group, day, time) {
-    bot.sendMessage(chatId, `<b>Завантажую розклад</b>` + "\n" + `<b>Група: </b><pre>${group}</pre>` +
-        '\n' + `<b>День: </b><pre>${day}</pre>` + '\n' + `<b>Час: </b><pre>${time}</pre>`, {
-        parse_mode: 'HTML'
-    });
     schedule.getRozklad(faculty)
         .then(
             function (cells) {
-                subject = '';
-                subject2 = '';
-                subject3 = '';
-                subject4 = '';
-                weekCh = '';
-                weekZn = '';
-                groupOne = '';
-                groupTwo = '';
+                subject = ''; subject2 = ''; subject3 = ''; subject4 = '';
+                weekCh = ''; weekZn = ''; groupOne = ''; groupTwo = '';
+                pairsTwoZn = 0; pairsFirstZn = 0; pairsFirstCh = 0; pairsTwoCh = 0;
                 for (var k = 0; k < cells.length; k++) {
                     if (cells[k].value === group) {//выбираем группу
                         var column = cells[k].col;//первая колонка
@@ -206,10 +186,30 @@ function getSchedule(chatId, group, day, time) {
                         for (var i = 0; i < cells.length; i++) {
                             if (cells[i].value === day) {//выбираем день недели
                                 var dayRows = cells[i].row;
-
+                                for (var p = 0; p < cells.length; p++) {
+                                    if ((cells[p].col === column || cells[p].col === column + 1) && cells[p].row >= dayRows && cells[p].row <= (dayRows + 9)) {
+                                        console.log(cells[p].value);
+                                        if (cells[p].col % 2 !== 0) {
+                                            if (cells[p].row % 2 !== 0) {
+                                                pairsFirstCh++;
+                                            }
+                                            if (cells[p].row % 2 === 0) {
+                                                pairsFirstZn++;
+                                            }
+                                        }
+                                        if (cells[p].col % 2 === 0){
+                                            if (cells[p].row % 2 !== 0) {
+                                                pairsTwoCh++;
+                                            }
+                                            if (cells[p].row % 2 === 0) {
+                                                pairsTwoZn++;
+                                            }
+                                        }
+                                    }
+                                }
                                 for (var t = 0; t < cells.length; t++) {//выбираем пару
                                     if (cells[t].value === time) {
-                                        var timeRows = cells[t].row
+                                        var timeRows = cells[t].row;
                                         for (var sch = 0; sch < cells.length; sch++) {
                                             if ((cells[sch].col === column || cells[sch].col === column + 1) && cells[sch].row >= dayRows && cells[sch].row <= (dayRows + 9) && cells[sch].row >= timeRows && cells[sch].row <= (timeRows + 1)) {
                                                 times = `<pre>${time}</pre>`;
@@ -217,23 +217,25 @@ function getSchedule(chatId, group, day, time) {
                                                     groupOne = `<b>Перша</b>`;
                                                     if (cells[sch].row % 2 !== 0) {
                                                             weekCh = `<b>Чисельник</b>`;
-                                                            subject = `<i>${cells[sch].value}</i>`;
+                                                            subject = `<pre>${cells[sch].value}</pre>`;
                                                     }
                                                     if (cells[sch].row % 2 === 0) {
                                                             weekZn = `<b>Знаменник</b>`;
-                                                            subject2 = `<i>${cells[sch].value}</i>`;
+                                                            subject2 = `<pre>${cells[sch].value}</pre>`;
                                                     }
+
                                                 }
                                                 if (cells[sch].col % 2 === 0){
                                                     groupTwo = `<b>Друга</b>`;
                                                     if (cells[sch].row % 2 !== 0) {
                                                             weekCh = `<b>Чисельник</b>`;
-                                                            subject3 = `<i>${cells[sch].value}</i>`;
+                                                            subject3 = `<pre>${cells[sch].value}</pre>`;
                                                     }
                                                     if (cells[sch].row % 2 === 0) {
                                                             weekZn = `<b>Знаменник</b>`;
-                                                            subject4 = `<i>${cells[sch].value}</i>`;
+                                                            subject4 = `<pre>${cells[sch].value}</pre>`;
                                                     }
+
                                                 }
                                             }
                                         }
@@ -243,7 +245,22 @@ function getSchedule(chatId, group, day, time) {
                         }
                     }
                 }
-                if(subject === subject2 && subject === subject3 && subject === subject4) {
+                bot.sendMessage(chatId, `<b>Розклад</b>` + "\n" + `<pre>${group}</pre>` +
+                    '\n' + `<pre>${day}</pre>` + '\n' + `<b>Всього пар по чисельнику:</b>` + '\n' + `<pre>Перша - ${pairsFirstCh};`+
+                    '  ' + `Друга - ${pairsTwoCh}</pre>`+'\n'+`<b>Всього пар по знаменнику:</b>`+ '\n' + `<pre>Перша - ${pairsFirstZn};` + '  ' + `Друга - ${pairsTwoZn}</pre>`, {
+                    parse_mode: 'HTML'
+                });
+                if(subject === '' && subject2 === '' && subject3 === '' && subject4 === '') {
+                    bot.sendMessage(chatId, `<b>Пар немає</b>`, {
+                        parse_mode: 'HTML'
+                    });
+                }
+                else if(subject === undefined && subject2 === undefined && subject3 === undefined && subject4 === undefined) {
+                    bot.sendMessage(chatId, `<b>Пар немає</b>`, {
+                        parse_mode: 'HTML'
+                    });
+                }
+                else if(subject === subject2 && subject === subject3 && subject === subject4) {
                     bot.sendMessage(chatId, times + '\n' + `<b>Щотижня, усі разом</b>` + '\n' + subject, {
                         parse_mode: 'HTML'
                     });
@@ -280,10 +297,11 @@ function getSchedule(chatId, group, day, time) {
                         });
                     }
                 }
-                console.log(chatId, times + '\n' + subject + subject2 + subject3 + subject4)
+                //console.log(chatId, times + '\n' + subject + subject2 + subject3 + subject4 + '\n' + pairsFirst + ' ' + pairsTwo);
+                //console.log('Count1 Ch ' + pairsFirstCh + ' Zn ' + pairsFirstZn + '\nCount2 Ch ' + pairsTwoCh + ' Zn' + pairsTwoZn);
             }
         );
-};
+}
 
 function sendGreeting(msg, sayHello = true) {
     const text = sayHello
